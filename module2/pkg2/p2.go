@@ -1,5 +1,5 @@
 package pkg2
 
 func Test() string {
-	return "From GITHUB Pkg2/P2.go"
+	return "from GITHUB Module2 Pkg2/P2.go"
 }
