@@ -7,7 +7,7 @@ var version = service.Version{Major: 1, Minor: 0, Patch: 0}
 var licensingService = service.Service{
 	Name:        "Licensing",
 	Description: "Provides information about the licensing",
-	Endpoint:    "/licensing",
+	Endpoints:   []string{"/start", "/stop", "/status", "/info"},
 	Port:        8082,
 	HealthCheck: "/health",
 	Version:     version,

@@ -3,22 +3,41 @@ package main
 import (
 	"fmt"
 
+	"github.com/prabhakk-mw/microservices/service"
 	"github.com/prabhakk-mw/microservices/services"
-	"github.com/prabhakk-mw/microservices/services/environment"
 )
 
 func main() {
 
-	fmt.Println(environment.GetEnvironmentInfo())
 	availableServices := services.GetAvailableServices()
 
+	var environmentService *service.Service
 	for _, service := range availableServices {
-		fmt.Printf("Service Name: %s\n", service.Name)
-		fmt.Printf("Description: %s\n", service.Description)
-		fmt.Printf("Endpoint: %s\n", service.Endpoint)
-		fmt.Printf("Port: %d\n", service.Port)
-		fmt.Printf("Health Check: %s\n", service.HealthCheck)
-		fmt.Printf("Version: %s\n", service.Version.String())
-		fmt.Println()
+		if service.Name == "Environment" {
+			environmentService = &service
+			break
+		}
 	}
+
+	fmt.Println(environmentService)
+
+	envServiceInfo := environmentService.Start()
+	fmt.Printf("Service %s started on port %d with status: %s\n", environmentService.Name, envServiceInfo.Port, envServiceInfo.Status)
+
+	// At this point the service has started on the returned port.
+	// Then this program can start communicating with this service via gRPC
+
+	// So aprt rom adhering to the interfaces specified by service.go
+	// The services will also have communicate their gRPC protobufs!
+	// How do we establish that..
+
+	// Finally, how will all this look when its between modules.
+	// Its all fun and games when the service is a package in the same module.
+	// Now if its between modules,
+
+	// Then the service module, will have to fetch the service.go package.
+	// instantiate itself,
+	// register with the service registry,
+	//
+
 }
