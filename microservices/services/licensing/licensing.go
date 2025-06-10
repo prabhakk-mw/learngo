@@ -8,7 +8,7 @@ var licensingService = service.Service{
 	Name:        "Licensing",
 	Description: "Provides information about the licensing",
 	Endpoint:    "/licensing",
-	Port:        8080,
+	Port:        8082,
 	HealthCheck: "/health",
 	Version:     version,
 }

@@ -8,7 +8,7 @@ var environmentService = service.Service{
 	Name:        "Environment",
 	Description: "Provides information about the environment",
 	Endpoint:    "/environment",
-	Port:        808000,
+	Port:        8081,
 	HealthCheck: "/health",
 	Version:     version,
 }

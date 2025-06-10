@@ -8,7 +8,7 @@ var sessionService = service.Service{
 	Name:        "Session",
 	Description: "Provides information about the session",
 	Endpoint:    "/session",
-	Port:        8080,
+	Port:        8083,
 	HealthCheck: "/health",
 	Version:     version,
 }
