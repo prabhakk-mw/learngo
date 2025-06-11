@@ -10,7 +10,7 @@ var version = service.Version{Major: 1, Minor: 0, Patch: 0}
 
 var port = 8081
 
-func environmentStarter() service.ServiceResponse {
+func startEnvironmentService() service.ServiceResponse {
 	fmt.Println("Starting Environment Service...")
 	return service.ServiceResponse{
 		Port:   port,
@@ -23,7 +23,7 @@ var environmentService = service.Service{
 	Description:   "Provides information about the environment",
 	HTTPEndpoints: []string{"/start", "/stop", "/status", "/info"},
 	Version:       version,
-	Start:         environmentStarter,
+	Start:         startEnvironmentService,
 }
 
 func GetServiceInfo() service.Service {
