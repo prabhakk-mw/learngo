@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+
+package capitalize_service;
+
+message CapRequest {
+    string Payload = 1;
+}
+message CapResponse {
+    string Payload = 1;
+}
+service CapService {
+    rpc Capitalize(CapRequest) returns (CapResponse);
+}
+
+// built the proto file using:
+// protoc --go_out=. --go-grpc_out=. proto/capservice.proto
