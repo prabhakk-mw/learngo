@@ -17,9 +17,6 @@ type capServer struct {
 func (s *capServer) Capitalize(ctx context.Context, req *pb.CapRequest) (res *pb.CapResponse, err error) {
 	capitalizedPayload := strings.ToUpper(req.GetPayload())
 	res = &pb.CapResponse{Payload: capitalizedPayload}
-	// if err := stream.Send(res); err != nil {
-	// return nil, err
-	// }
 	log.Printf("Received request: %s, responding with: %s", req.GetPayload(), capitalizedPayload)
 	return res, nil
 }
