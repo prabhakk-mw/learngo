@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prabhakk-mw/learngo/capitalize-spawn-ms/http-server/microservices"
-	pb "github.com/prabhakk-mw/learngo/capitalize-spawn-ms/proto"
+	pb "github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/capservice/pb"
+	"github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/http-server/microservices"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -68,7 +68,9 @@ func GRPCHandler(w http.ResponseWriter, r *http.Request) {
 	if len(payload) != 0 {
 
 		log.Println("About to start microservice")
-		ctx, cancel := context.WithCancel(context.Background())
+		// Using the context.WithCancel sometimes gives the "context deadline exceeded" error,
+		// Using WithTimeout to give atleast 10 seconds for the microservice to start
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
 		// Without this, the microservice would have to be started manually

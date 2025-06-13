@@ -5,8 +5,8 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/prabhakk-mw/learngo/capitalize-spawn-ms/capservice"
-	"github.com/prabhakk-mw/learngo/capitalize-spawn-ms/http-server/ports"
+	"github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/capservice"
+	"github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/http-server/ports"
 )
 
 func findNextFreePort() (int, error) {

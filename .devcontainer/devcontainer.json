@@ -14,7 +14,8 @@
 			"settings": {},
 			"extensions": [
 				"golang.go",
-				"zxh404.vscode-proto3"
+				"zxh404.vscode-proto3",
+				"Postman.postman-for-vscode"
 			]
 		}
 	}

@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/prabhakk-mw/learngo/capitalize-spawn-ms/http-server/handlers"
+	"github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/http-server/handlers"
 )
 
 const (

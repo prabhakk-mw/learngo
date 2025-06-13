@@ -7,7 +7,7 @@ import (
 	"net"
 	"strings"
 
-	pb "github.com/prabhakk-mw/learngo/capitalize-spawn-ms/proto"
+	pb "github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/capservice/pb"
 	"google.golang.org/grpc"
 )
 
