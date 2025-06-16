@@ -119,3 +119,9 @@ In this example:
 AI responses may include mistakes.
 
 [-] https://mohanliu.com/blog/Design%20Discuss%20and%20Re-invent%20a%20go%20routine%20Container[-] https://github.com/bnixon67/go-weblogin
+
+## What do I want to do?
+
+When a grpc request comes in, The handler must request for the microservice to be initialized.
+When the initialization is ready, then it should continue to setup the grpc client, and proceed to service the request.
+

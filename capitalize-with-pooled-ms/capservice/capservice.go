@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"strings"
+	"time"
 
 	pb "github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/capservice/pb"
 	"google.golang.org/grpc"
@@ -33,5 +34,27 @@ func StartCapService(ctx context.Context, port string, ready chan<- struct{}, er
 	close(ready) // Signal that the server is ready to accept connections
 	if err := grpcServer.Serve(lis); err != nil {
 		errChan <- fmt.Errorf("capservice failed to serve: %v", err)
+	}
+}
+
+func TestService(ctx context.Context, ready chan<- struct{}, done chan<- struct{}) {
+	log.Println("Mark TestService as ready.")
+	close(ready)
+	count := 0
+	// ticker := make(chan struct{})
+	for {
+		log.Println("running")
+		count++
+		if count > 5 {
+			log.Println("TestService has run 5 times, exiting...")
+			close(done)
+			return
+		}
+		// Sleep for 3 seconds or until context is done
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(1 * time.Second):
+		}
 	}
 }

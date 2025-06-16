@@ -9,6 +9,8 @@ import (
 	"github.com/prabhakk-mw/learngo/capitalize-ms-in-another-module/http-server/ports"
 )
 
+var myGlobalVariable = "This is a global variable" // Example global variable
+
 func findNextFreePort() (int, error) {
 	// This function is a placeholder. In a real application, you would implement logic to find the next free port.
 	port, err := ports.GetFreePort()
@@ -17,6 +19,19 @@ func findNextFreePort() (int, error) {
 		return 0, err
 	}
 	return port, nil
+}
+
+func GetOrStartMicroService() (grpcServerAddress string, err error) {
+	// Check if the microservice is already running
+	grpcServerAddress, err = ports.GetGRPCServerAddress()
+	if err == nil {
+		log.Println("Using existing microservice at address:", grpcServerAddress)
+		return grpcServerAddress, nil
+	}
+
+	// If not running, start the microservice
+	log.Println("Starting new microservice...")
+	return StartMicroService()
 }
 
 func StartMicroService(ctx context.Context) (grpcServerAddress string, err error) {
