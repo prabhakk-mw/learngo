@@ -37,22 +37,28 @@ func StartCapService(ctx context.Context, port string, ready chan<- struct{}, er
 	}
 }
 
-func TestService(ctx context.Context, ready chan<- struct{}, done chan<- struct{}) {
-	log.Println("Mark TestService as ready.")
-	close(ready)
+func TestService(ctx context.Context, ready chan<- int, done chan<- int) {
+	log.Println("TestService has started.")
 	count := 0
-	// ticker := make(chan struct{})
 	for {
 		log.Println("running")
 		count++
+
+		if count == 3 {
+			log.Println("TestService has run 3 times, signalling ready...")
+			ready <- count
+			continue
+		}
+
 		if count > 5 {
 			log.Println("TestService has run 5 times, exiting...")
 			close(done)
 			return
 		}
-		// Sleep for 3 seconds or until context is done
+
 		select {
 		case <-ctx.Done():
+			log.Printf("Context done: %v", ctx.Err().Error())
 			return
 		case <-time.After(1 * time.Second):
 		}

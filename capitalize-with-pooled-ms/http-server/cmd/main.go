@@ -25,13 +25,17 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	readyChan := make(chan struct{})
-	doneChan := make(chan struct{})
+	readyChan := make(chan int)
+	doneChan := make(chan int)
 	go capservice.TestService(ctx, readyChan, doneChan)
 
+	// wait here until the servie is ready.
+	log.Println("Execution blocked until ready signal is received.")
+	readySignal := <-readyChan
+	log.Printf("TestService is ready to accept requests, : %d\n", readySignal)
+
+	// Wait here until service / context is done
 	select {
-	case <-readyChan:
-		log.Println("TestService is ready to accept requests")
 	case <-doneChan:
 		log.Println("TestService completed successfully")
 	case <-ctx.Done():

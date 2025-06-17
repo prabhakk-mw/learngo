@@ -7,7 +7,10 @@
 		"ghcr.io/devcontainers-extra/features/protoc:1": {}
 	},
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest",
+	"postCreateCommand": {
+		"install-protoc": "go install google.golang.org/protobuf/cmd/protoc-gen-go@latest && go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest",
+		// "install-swagger": "go install github.com/swaggo/swag/cmd/swag@latest"
+	},
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
