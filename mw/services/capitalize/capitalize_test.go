@@ -1,11 +1,10 @@
 package capitalize
 
 import (
-	"fmt"
 	"testing"
 )
 
-func TestCapitalizeCore(t *testing.T) {
+func TestCapitalizeCore(test *testing.T) {
 	tests := []struct {
 		input    string
 		expected string
@@ -16,11 +15,12 @@ func TestCapitalizeCore(t *testing.T) {
 		{"", ""},
 	}
 
-	for _, test := range tests {
-		result := capitalizeCore(test.input)
-		fmt.Println(result)
-		if result != test.expected {
-			t.Errorf("Capitalize(%q) = %q; want %q", test.input, result, test.expected)
+	for _, testpoint := range tests {
+		result := capitalizeCore(testpoint.input)
+		test.Logf("capitalizeCore(%q) => %q; expected %q", testpoint.input, result, testpoint.expected)
+
+		if result != testpoint.expected {
+			test.Errorf("Capitalize(%q) = %q; want %q", testpoint.input, result, testpoint.expected)
 		}
 	}
 }

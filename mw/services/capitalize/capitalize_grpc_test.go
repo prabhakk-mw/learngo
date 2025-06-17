@@ -2,19 +2,21 @@ package capitalize
 
 import (
 	"context"
+	"io"
 	"log"
-	"net"
 	"testing"
 	"time"
 
+	"github.com/prabhakk-mw/learngo/mw/common/defs"
 	pb "github.com/prabhakk-mw/learngo/mw/services/capitalize/pb"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func setupTestServer(ctx context.Context) (*grpc.Server, net.Listener) {
+func setupTestServer(ctx context.Context) defs.ServerInfo {
 
-	serverInfoChan := make(chan ServerInfo)
+	serverInfoChan := make(chan defs.ServerInfo)
 	errChan := make(chan error, 1)
 	go StartCapitalizeService(ctx, serverInfoChan, errChan)
 
@@ -22,28 +24,32 @@ func setupTestServer(ctx context.Context) (*grpc.Server, net.Listener) {
 	// It also marks that the service is ready to accept requests.
 	select {
 	case serverInfo := <-serverInfoChan:
-		return serverInfo.grpcServer, serverInfo.listener
+		return serverInfo
 
 	case err := <-errChan:
 		log.Println("Server failed to start:", err)
-		return nil, nil
+		return defs.NewServerInfo(nil, nil)
 
 	case <-ctx.Done():
 		err := ctx.Err()
 		log.Println("Context cancelled while starting the capitalization service:", err)
-		return nil, nil
+		return defs.NewServerInfo(nil, nil)
 	}
 }
 
 func TestCapitalizeService(test *testing.T) {
+	// redirect log output to discard to avoid cluttering test output
+	log.SetOutput(io.Discard)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	grpcServer, lis := setupTestServer(ctx)
-	defer grpcServer.Stop()
+	grpcServerInfo := setupTestServer(ctx)
+	defer grpcServerInfo.GetGRPCServer().Stop()
 
-	conn, err := grpc.NewClient(lis.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	log.Println("Capitalize service started at address:", grpcServerInfo.GetAddress())
+
+	conn, err := grpc.NewClient(grpcServerInfo.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		test.Fatalf("Failed to connect to server: %v", err)
 	}
@@ -78,6 +84,6 @@ func TestCapitalizeService(test *testing.T) {
 		if result != testpoint.expected {
 			test.Errorf("Capitalize(%q) = %q; want %q", testpoint.input, result, testpoint.expected)
 		}
-		log.Printf("Test passed: received capitalized payload: %s", resp.Payload)
+		test.Logf("grcp Capitalize(%q) => %q; expected %q", testpoint.input, result, testpoint.expected)
 	}
 }

@@ -3,8 +3,8 @@ package utils
 import (
 	"context"
 	"log"
-	"strconv"
 
+	"github.com/prabhakk-mw/learngo/mw/common/defs"
 	srv "github.com/prabhakk-mw/learngo/mw/services/capitalize"
 )
 
@@ -21,30 +21,23 @@ func GetOrStartGRPCServer(ctx context.Context) {
 }
 
 func StartGRPCServer(ctx context.Context, server string) (serverAddress string, err error) {
-	log.Printf("Starting GRPC Server for: %s", server)
-
-	// In the future find a way to switch on the server string.
-	// For now, just assume a service
-
-	readyChan := make(chan int)
+	serverInfoChan := make(chan defs.ServerInfo)
 	errChan := make(chan error, 1)
-	go srv.StartCapService(ctx, readyChan, errChan)
+	go srv.StartCapitalizeService(ctx, serverInfoChan, errChan)
 
-	// This line will block until the service responds with the port number.
+	// This line will block until the service responds with server information.
 	// It also marks that the service is ready to accept requests.
 	select {
-	case port := <-readyChan:
-		portToUse := strconv.Itoa(port)
-		grpcServerAddress := "localhost:" + portToUse
-		return grpcServerAddress, nil
+	case serverInfo := <-serverInfoChan:
+		return serverInfo.GetAddress(), nil
 
 	case err := <-errChan:
 		log.Println("Server failed to start:", err)
 		return "", err
+
 	case <-ctx.Done():
-		err = ctx.Err()
+		err := ctx.Err()
 		log.Println("Context cancelled while starting the capitalization service:", err)
 		return "", err
 	}
-
 }
