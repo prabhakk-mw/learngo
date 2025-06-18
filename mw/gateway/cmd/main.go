@@ -28,6 +28,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/capitalize", handler.CapitalizeHandler)
 	mux.HandleFunc("/static-capitalize", handler.StaticCapitalizeHandler)
+	mux.HandleFunc("/exit", func(_ http.ResponseWriter, _ *http.Request) { mainCancel() })
 
 	srv := &http.Server{
 		Addr:    httpPort,
