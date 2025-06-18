@@ -8,11 +8,69 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/prabhakk-mw/learngo/mw/common/defs"
 	"github.com/prabhakk-mw/learngo/mw/gateway/internal/utils"
 	pb "github.com/prabhakk-mw/learngo/mw/services/capitalize/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+type Handlers struct {
+	RootCtx        context.Context
+	grpcServerInfo *defs.ServerInfo
+}
+
+/***** Local Functions *****/
+
+func getPayload(r *http.Request) string {
+
+	u, err := url.Parse(r.URL.String())
+	if err != nil {
+		return ""
+	}
+	// Extract query parameters
+	query := u.Query()
+	// Get single value
+	return query.Get("payload")
+}
+
+func callCapGrpcService(client pb.CapServiceClient, payload string) (capitalizedPayload string, err error) {
+
+	// Create a context that expects the grpc server to respond within 1 second.
+	grpcCallCtx, grpcCallCancel := context.WithTimeout(context.Background(), time.Second)
+	defer grpcCallCancel()
+
+	res, err := client.Capitalize(grpcCallCtx, &pb.CapRequest{Payload: payload})
+	if err != nil {
+		log.Printf("Could not call Capitalize: %v\n", err)
+		return "", err
+	}
+
+	capitalizedPayload = res.GetPayload()
+	return capitalizedPayload, nil
+}
+
+func (handlers *Handlers) startGRPCServer(reuseServer bool) (serverInfo defs.ServerInfo, cancel context.CancelFunc) {
+
+	if reuseServer {
+		if handlers.grpcServerInfo == nil {
+			// The lifetime of the reusable server is tied to the root context.
+			serverInfo = utils.StartGRPCServer(handlers.RootCtx, "capitalize")
+			handlers.grpcServerInfo = &serverInfo
+		} else {
+			serverInfo = *handlers.grpcServerInfo
+		}
+		cancel = nil
+
+	} else {
+		// The context is per request now, this ensures that the server is shutdown when the request is complete.
+		ctx, cancelFcn := context.WithTimeout(handlers.RootCtx, 3*time.Second)
+		serverInfo = utils.StartGRPCServer(ctx, "capitalize")
+		cancel = cancelFcn
+	}
+	return serverInfo, cancel
+
+}
 
 /*
 This handler has a need to call a gRPC service to capitalize the payload.
@@ -30,35 +88,16 @@ Ideas:
 
 4. Move the microservice to another module,
 */
-func CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("gRPC request received")
+func (handlers *Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Request, reuseServer bool) {
 
-	u, err := url.Parse(r.URL.String())
-	if err != nil {
-		http.Error(w, "Error parsing URL", http.StatusBadRequest)
-		return
-	}
+	if payload := getPayload(r); len(payload) != 0 {
 
-	// Extract query parameters
-	query := u.Query()
+		grpcServerInfo, cancel := handlers.startGRPCServer(reuseServer)
+		if cancel != nil {
+			defer cancel()
+		}
 
-	// Get single value
-	payload := query.Get("payload")
-	if len(payload) != 0 {
-
-		log.Println("About to start microservice")
-		// Using the context.WithCancel sometimes gives the "context deadline exceeded" error,
-		// Using WithTimeout to give atleast 10 seconds for the microservice to start
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		// Without this, the microservice would have to be started manually
-		// grpcServerAddress, _ := microservices.StartMicroService(ctx)
-		grpcServerAddress, _ := utils.StartGRPCServer(ctx, "capitalize")
-
-		log.Println("Started microservice at address:", grpcServerAddress)
-
-		conn, err := grpc.NewClient(grpcServerAddress, grpc.WithTransportCredentials(insecure.NewCredentials()))
+		conn, err := grpc.NewClient(grpcServerInfo.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 		if err != nil {
 			http.Error(w, "Failed to connect to gRPC server", http.StatusInternalServerError)
 			return
@@ -66,32 +105,27 @@ func CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
 		defer conn.Close()
 
 		client := pb.NewCapServiceClient(conn)
+
 		capitalizedPayload, err := callCapGrpcService(client, payload)
 		if err != nil {
 			log.Printf("Failed to call gRPC service: %v\n", err)
 			http.Error(w, "Failed to call gRPC service", http.StatusInternalServerError)
 			return
 		}
-		// Write the response
-		log.Printf("Capitalized payload: %s\n", capitalizedPayload)
 		// Write the response to the HTTP client
-		fmt.Fprintf(w, "Used gRPC service to capitalize %s to %s \n", payload, capitalizedPayload)
+		fmt.Fprintf(w, "Capitalized [%s] to [%s] \n", payload, capitalizedPayload)
 	} else {
-		fmt.Fprintf(w, "No query parameters provided. Please use ?payload=your_text to capitalize.\n")
+		// Even though the service allows for null strings, this simulates business logic that does not accept null strings.
+		http.Error(w, "Error parsing URL.", http.StatusBadRequest)
 	}
 }
 
-func callCapGrpcService(client pb.CapServiceClient, payload string) (capitalizedPayload string, err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+/***** Local Functions *****/
 
-	res, err := client.Capitalize(ctx, &pb.CapRequest{Payload: payload})
-	if err != nil {
-		log.Printf("Could not call Capitalize: %v\n", err)
-		return "", err
-	}
+func (handlers *Handlers) CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.capitalizeHandler(w, r, false)
+}
 
-	capitalizedPayload = res.GetPayload()
-	log.Printf("Response from gRPC service: %s\n", capitalizedPayload)
-	return capitalizedPayload, nil
+func (handlers *Handlers) StaticCapitalizeHandler(w http.ResponseWriter, r *http.Request) {
+	handlers.capitalizeHandler(w, r, true)
 }
