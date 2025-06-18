@@ -11,11 +11,27 @@ type ServerInfo struct {
 	listener   net.Listener
 }
 
+func NilServerInfo() ServerInfo {
+	return ServerInfo{nil, nil}
+}
+
 func NewServerInfo(grpcServer *grpc.Server, listener net.Listener) ServerInfo {
 	return ServerInfo{
 		grpcServer: grpcServer,
 		listener:   listener,
 	}
+}
+
+func (s *ServerInfo) GetProtocol() string {
+	return s.listener.Addr().Network()
+}
+
+func (s *ServerInfo) IsProtocolUDS() bool {
+	return s.GetProtocol() == "unix"
+}
+
+func (s *ServerInfo) IsProtocolTCP() bool {
+	return s.GetProtocol() == "tcp"
 }
 
 func (s *ServerInfo) GetPort() int {
@@ -31,7 +47,11 @@ func (s *ServerInfo) GetAddress() string {
 	if s.listener == nil {
 		return ""
 	}
-	return s.listener.Addr().String()
+	suffix := ""
+	if s.IsProtocolUDS() {
+		suffix = "unix://"
+	}
+	return suffix + s.listener.Addr().String()
 }
 func (s *ServerInfo) GetGRPCServer() *grpc.Server {
 	if s.grpcServer == nil {

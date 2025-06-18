@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	"github.com/prabhakk-mw/learngo/mw/common/defs"
@@ -23,19 +24,23 @@ func capitalizeCore(payload string) string {
 func (s *capServer) Capitalize(_ context.Context, req *pb.CapRequest) (res *pb.CapResponse, err error) {
 	capitalizedPayload := capitalizeCore(req.GetPayload())
 	res = &pb.CapResponse{Payload: capitalizedPayload}
-	log.Printf("Received request: %s, responding with: %s", req.GetPayload(), capitalizedPayload)
+	log.Printf("Capitalize[%s]=>[%s]", req.GetPayload(), capitalizedPayload)
 	return res, nil
 }
 
-func StartCapitalizeService(ctx context.Context, serverInfo chan<- defs.ServerInfo, errChan chan<- error) {
-	defer log.Println("Shutting down CaptializeService")
+func startCapitalizeServiceImpl(ctx context.Context,
+	serverInfo chan<- defs.ServerInfo,
+	errChan chan<- error,
+	protocol string,
+	address string) {
 
-	lis, err := net.Listen("tcp", ":0") // Use the next available port
+	defer log.Println("Shutting down CaptializeService on " + protocol)
+
+	lis, err := net.Listen(protocol, address)
 	if err != nil {
 		errChan <- fmt.Errorf("capservice failed to listen: %v", err)
 		return
 	}
-
 	grpcServer := grpc.NewServer()
 	pb.RegisterCapServiceServer(grpcServer, &capServer{})
 
@@ -55,4 +60,25 @@ func StartCapitalizeService(ctx context.Context, serverInfo chan<- defs.ServerIn
 	<-ctx.Done()
 	log.Printf("Context Shutdown received, stopping GRPCServer:%s", newServerInfo.GetAddress())
 	grpcServer.GracefulStop()
+}
+
+func StartCapitalizeService(ctx context.Context, serverInfo chan<- defs.ServerInfo, errChan chan<- error) {
+	startCapitalizeServiceImpl(ctx, serverInfo, errChan, "tcp", ":0" /*Use the next available port*/)
+}
+
+func StartCapitalizeServiceOnUDS(ctx context.Context, serverInfo chan<- defs.ServerInfo, errChan chan<- error) {
+	tempFile, err := os.CreateTemp("", "CapitalizeService-*.sock")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	sockAddr := tempFile.Name()
+	os.Remove(tempFile.Name())
+
+	if _, err := os.Stat(sockAddr); !os.IsNotExist(err) {
+		if err := os.RemoveAll(sockAddr); err != nil {
+			log.Fatal(err)
+		}
+	}
+	startCapitalizeServiceImpl(ctx, serverInfo, errChan, "unix", sockAddr)
 }
