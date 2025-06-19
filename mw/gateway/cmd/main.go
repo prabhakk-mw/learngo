@@ -9,13 +9,29 @@ import (
 	"syscall"
 	"time"
 
+	_ "github.com/prabhakk-mw/learngo/mw/gateway/docs"
 	"github.com/prabhakk-mw/learngo/mw/gateway/internal/handlers"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 const (
 	httpPort = ":8081"
 )
 
+//	@title			MathWorks API Gateway
+//	@version		1.0
+//	@description	Control and communicate with MATLAB through API Endpoints
+//	@termsOfService	https://www.mathworks.com/license/mll/license.txt
+
+//	@contact.name	The MathWorks Inc.
+//	@contact.url	https://www.mathworks.com/support
+//	@contact.email	support@mathworks.com
+
+//	@license.name	MathWorks Cloud Reference Architecture License
+//	@license.url	https://github.com/mathworks/jupyter-matlab-proxy/blob/main/LICENSE.md
+
+// @host		localhost:8081
+// @BasePath	/
 func main() {
 	log.Printf("Use : http://localhost%s/capitalize?payload=yourtext to capitalize text\n", httpPort)
 
@@ -26,9 +42,11 @@ func main() {
 
 	// Create a new server
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/capitalize", handler.CapitalizeHandler)
 	mux.HandleFunc("/static-capitalize", handler.StaticCapitalizeHandler)
 	mux.HandleFunc("/exit", func(_ http.ResponseWriter, _ *http.Request) { mainCancel() })
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	srv := &http.Server{
 		Addr:    httpPort,

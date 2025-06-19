@@ -1,0 +1,135 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Control and communicate with MATLAB through API Endpoints",
+        "title": "MathWorks API Gateway",
+        "termsOfService": "https://www.mathworks.com/license/mll/license.txt",
+        "contact": {
+            "name": "The MathWorks Inc.",
+            "url": "https://www.mathworks.com/support",
+            "email": "support@mathworks.com"
+        },
+        "license": {
+            "name": "MathWorks Cloud Reference Architecture License",
+            "url": "https://github.com/mathworks/jupyter-matlab-proxy/blob/main/LICENSE.md"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/",
+    "paths": {
+        "/capitalize": {
+            "get": {
+                "description": "Capitalize URL Query Parameters using gRPC service as a microservice",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Capitalize Example"
+                ],
+                "summary": "Uses a grpc server per request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "String to Capitalize",
+                        "name": "payload",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Capitalized String",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/environment/list": {
+            "get": {
+                "description": "Use this to find the MATLABs available to use.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Environment"
+                ],
+                "summary": "Lists the MATLAB Installations found on the device.",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/licensing/options/{env_id}": {
+            "get": {
+                "description": "List of available licensing options.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Licensing"
+                ],
+                "summary": "Lists the licensing options available to use for an environment.",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Environment ID",
+                        "name": "env_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/static-capitalize": {
+            "get": {
+                "description": "Capitalize URL Query Parameters using gRPC service as a microservice",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Capitalize Example"
+                ],
+                "summary": "Uses the same grpc server for the lifetime of the program",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "String to Capitalize",
+                        "name": "payload",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Capitalized String",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

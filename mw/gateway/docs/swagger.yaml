@@ -1,0 +1,90 @@
+basePath: /
+host: localhost:8081
+info:
+  contact:
+    email: support@mathworks.com
+    name: The MathWorks Inc.
+    url: https://www.mathworks.com/support
+  description: Control and communicate with MATLAB through API Endpoints
+  license:
+    name: MathWorks Cloud Reference Architecture License
+    url: https://github.com/mathworks/jupyter-matlab-proxy/blob/main/LICENSE.md
+  termsOfService: https://www.mathworks.com/license/mll/license.txt
+  title: MathWorks API Gateway
+  version: "1.0"
+paths:
+  /capitalize:
+    get:
+      consumes:
+      - application/json
+      description: Capitalize URL Query Parameters using gRPC service as a microservice
+      parameters:
+      - description: String to Capitalize
+        in: query
+        name: payload
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Capitalized String
+          schema:
+            type: string
+      summary: Uses a grpc server per request
+      tags:
+      - Capitalize Example
+  /environment/list:
+    get:
+      consumes:
+      - application/json
+      description: Use this to find the MATLABs available to use.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Lists the MATLAB Installations found on the device.
+      tags:
+      - Environment
+  /licensing/options/{env_id}:
+    get:
+      consumes:
+      - application/json
+      description: List of available licensing options.
+      parameters:
+      - description: Environment ID
+        in: path
+        name: env_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Lists the licensing options available to use for an environment.
+      tags:
+      - Licensing
+  /static-capitalize:
+    get:
+      consumes:
+      - application/json
+      description: Capitalize URL Query Parameters using gRPC service as a microservice
+      parameters:
+      - description: String to Capitalize
+        in: query
+        name: payload
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Capitalized String
+          schema:
+            type: string
+      summary: Uses the same grpc server for the lifetime of the program
+      tags:
+      - Capitalize Example
+swagger: "2.0"

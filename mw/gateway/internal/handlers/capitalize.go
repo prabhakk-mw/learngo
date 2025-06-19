@@ -122,10 +122,30 @@ func (handlers *Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Reque
 
 /***** Local Functions *****/
 
+// CapitalizeHandler Capitalize strings using
+//
+//	@Summary		Uses a grpc server per request
+//	@Description	Capitalize URL Query Parameters using gRPC service as a microservice
+//	@Tags			Capitalize Example
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	query		string		true	"String to Capitalize"
+//	@Success		200		{string}	Helloworld	"Capitalized String"
+//	@Router			/capitalize [get]
 func (handlers *Handlers) CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.capitalizeHandler(w, r, false)
 }
 
+// CapitalizeHandler Capitalize strings using Static gRPC Handler
+//
+//	@Summary		Uses the same grpc server for the lifetime of the program
+//	@Description	Capitalize URL Query Parameters using gRPC service as a microservice
+//	@Tags			Capitalize Example
+//	@Accept			json
+//	@Produce		json
+//	@Param			payload	query		string		true	"String to Capitalize"
+//	@Success		200		{string}	Helloworld	"Capitalized String"
+//	@Router			/static-capitalize [get]
 func (handlers *Handlers) StaticCapitalizeHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.capitalizeHandler(w, r, true)
 }
