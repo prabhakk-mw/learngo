@@ -1,24 +1,22 @@
 package handlers
 
 import (
-	"context"
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/prabhakk-mw/learngo/mw/common/defs"
-	"github.com/prabhakk-mw/learngo/mw/gateway/internal/utils"
+
 	pb "github.com/prabhakk-mw/learngo/mw/services/capitalize/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type Handlers struct {
-	RootCtx        context.Context
-	grpcServerInfo *defs.ServerInfo
-}
+// type defs.Handlers struct {
+// 	RootCtx        context.Context
+// 	grpcServerInfo *defs.ServerInfo
+// }
 
 /***** Local Functions *****/
 
@@ -32,44 +30,6 @@ func getPayload(r *http.Request) string {
 	query := u.Query()
 	// Get single value
 	return query.Get("payload")
-}
-
-func callCapGrpcService(client pb.CapServiceClient, payload string) (capitalizedPayload string, err error) {
-
-	// Create a context that expects the grpc server to respond within 1 second.
-	grpcCallCtx, grpcCallCancel := context.WithTimeout(context.Background(), time.Second)
-	defer grpcCallCancel()
-
-	res, err := client.Capitalize(grpcCallCtx, &pb.CapRequest{Payload: payload})
-	if err != nil {
-		log.Printf("Could not call Capitalize: %v\n", err)
-		return "", err
-	}
-
-	capitalizedPayload = res.GetPayload()
-	return capitalizedPayload, nil
-}
-
-func (handlers *Handlers) startGRPCServer(reuseServer bool) (serverInfo defs.ServerInfo, cancel context.CancelFunc) {
-
-	if reuseServer {
-		if handlers.grpcServerInfo == nil {
-			// The lifetime of the reusable server is tied to the root context.
-			serverInfo = utils.StartGRPCServer(handlers.RootCtx, "capitalize")
-			handlers.grpcServerInfo = &serverInfo
-		} else {
-			serverInfo = *handlers.grpcServerInfo
-		}
-		cancel = nil
-
-	} else {
-		// The context is per request now, this ensures that the server is shutdown when the request is complete.
-		ctx, cancelFcn := context.WithTimeout(handlers.RootCtx, 3*time.Second)
-		serverInfo = utils.StartGRPCServer(ctx, "capitalize")
-		cancel = cancelFcn
-	}
-	return serverInfo, cancel
-
 }
 
 /*
@@ -88,9 +48,12 @@ Ideas:
 
 4. Move the microservice to another module,
 */
-func (handlers *Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Request, reuseServer bool) {
+func (handlers *defs.Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Request, reuseServer bool) {
 
 	if payload := getPayload(r); len(payload) != 0 {
+
+		// Function call style.
+		// capitalize.CapitalizeCore(payload)
 
 		grpcServerInfo, cancel := handlers.startGRPCServer(reuseServer)
 		if cancel != nil {
@@ -106,14 +69,20 @@ func (handlers *Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Reque
 
 		client := pb.NewCapServiceClient(conn)
 
-		capitalizedPayload, err := callCapGrpcService(client, payload)
+		res, err := callCapGrpcService(client, payload)
 		if err != nil {
 			log.Printf("Failed to call gRPC service: %v\n", err)
 			http.Error(w, "Failed to call gRPC service", http.StatusInternalServerError)
 			return
 		}
 		// Write the response to the HTTP client
-		fmt.Fprintf(w, "Capitalized [%s] to [%s] \n", payload, capitalizedPayload)
+		w.Header().Set("Content-Type", "application/json")
+
+		// Encode the response object to JSON and write to the response writer
+		if err := json.NewEncoder(w).Encode(res); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	} else {
 		// Even though the service allows for null strings, this simulates business logic that does not accept null strings.
 		http.Error(w, "Error parsing URL.", http.StatusBadRequest)
@@ -132,7 +101,7 @@ func (handlers *Handlers) capitalizeHandler(w http.ResponseWriter, r *http.Reque
 //	@Param			payload	query		string		true	"String to Capitalize"
 //	@Success		200		{string}	Helloworld	"Capitalized String"
 //	@Router			/capitalize [get]
-func (handlers *Handlers) CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
+func (handlers *defs.Handlers) CapitalizeHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.capitalizeHandler(w, r, false)
 }
 
@@ -146,6 +115,6 @@ func (handlers *Handlers) CapitalizeHandler(w http.ResponseWriter, r *http.Reque
 //	@Param			payload	query		string		true	"String to Capitalize"
 //	@Success		200		{string}	Helloworld	"Capitalized String"
 //	@Router			/static-capitalize [get]
-func (handlers *Handlers) StaticCapitalizeHandler(w http.ResponseWriter, r *http.Request) {
+func (handlers *defs.Handlers) StaticCapitalizeHandler(w http.ResponseWriter, r *http.Request) {
 	handlers.capitalizeHandler(w, r, true)
 }

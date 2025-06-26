@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/prabhakk-mw/learngo/mw/common/defs"
 	_ "github.com/prabhakk-mw/learngo/mw/gateway/docs"
-	"github.com/prabhakk-mw/learngo/mw/gateway/internal/handlers"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -38,7 +38,7 @@ func main() {
 	mainCtx, mainCancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer mainCancel()
 
-	handler := &handlers.Handlers{RootCtx: mainCtx}
+	handler := &defs.Handlers{RootCtx: mainCtx}
 
 	// Create a new server
 	mux := http.NewServeMux()

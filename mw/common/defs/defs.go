@@ -1,10 +1,15 @@
 package defs
 
 import (
+	"context"
 	"net"
 
 	"google.golang.org/grpc"
 )
+
+type Handler interface {
+	startGRPCServer(reuseServer bool) (ServerInfo, context.CancelFunc)
+}
 
 type ServerInfo struct {
 	grpcServer *grpc.Server
